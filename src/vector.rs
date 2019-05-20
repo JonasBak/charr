@@ -73,6 +73,16 @@ where
     {
         self.add(other).sum()
     }
+    fn scal(&self, scal: T) -> Self
+    where
+        Self: std::marker::Sized,
+    {
+        let mut new = Self::zero();
+        for i in 0..Self::DIMS {
+            new.set(i, self.get(i) * scal);
+        }
+        new
+    }
 }
 
 pub trait Zeroable {

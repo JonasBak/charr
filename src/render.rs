@@ -29,10 +29,6 @@ fn inside(p0: &Vec2f, p1: &Vec2f, p2: &Vec2f, p: &Vec2f) -> bool {
     c1 * c2 <= 0.0
 }
 
-fn len(p0: &Vec2f, p1: &Vec2f) -> f32 {
-    ((p1.0 - p0.0).powf(2.0) + (p1.1 - p0.1).powf(2.0)).sqrt()
-}
-
 struct Vertex(Vec3f, Color);
 
 struct PixelBuffer {

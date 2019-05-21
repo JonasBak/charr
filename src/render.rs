@@ -59,18 +59,16 @@ fn rasterize(
     width: i32,
     height: i32,
 ) {
-    let p0_proj = Vec2(
-        (v0.0).0 + (width as f32) / 2.0,
-        (v0.0).1 + (height as f32) / 2.0,
-    );
-    let p1_proj = Vec2(
-        (v1.0).0 + (width as f32) / 2.0,
-        (v1.0).1 + (height as f32) / 2.0,
-    );
-    let p2_proj = Vec2(
-        (v2.0).0 + (width as f32) / 2.0,
-        (v2.0).1 + (height as f32) / 2.0,
-    );
+    let center = Vec2((width as f32) / 2.0, (height as f32) / 2.0);
+    let p0_proj = Vec2((v0.0).0, (v0.0).1)
+        .scal(40.0 / (100.0 + (v0.0).2))
+        .add(&center);
+    let p1_proj = Vec2((v1.0).0, (v1.0).1)
+        .scal(40.0 / (100.0 + (v1.0).2))
+        .add(&center);
+    let p2_proj = Vec2((v2.0).0, (v2.0).1)
+        .scal(40.0 / (100.0 + (v2.0).2))
+        .add(&center);
     let min_x = p0_proj
         .0
         .min(p1_proj.0)
@@ -158,9 +156,9 @@ pub fn test() {
         v0 = Vertex(rotate_y(v0.0, 0.2), Color::Blue);
         v1 = Vertex(rotate_y(v1.0, 0.2), Color::Blue);
         v2 = Vertex(rotate_y(v2.0, 0.2), Color::Blue);
-        v3 = Vertex(rotate_y(v3.0, -0.1), Color::Red);
-        v4 = Vertex(rotate_y(v4.0, -0.1), Color::Red);
-        v5 = Vertex(rotate_y(v5.0, -0.1), Color::Red);
+        v3 = Vertex(rotate_y(v3.0, 0.1), Color::Red);
+        v4 = Vertex(rotate_y(v4.0, 0.1), Color::Red);
+        v5 = Vertex(rotate_y(v5.0, 0.1), Color::Red);
         rasterize(&v0, &v1, &v2, &mut buffer[..], width as i32, height as i32);
         rasterize(&v3, &v4, &v5, &mut buffer[..], width as i32, height as i32);
 
@@ -171,7 +169,7 @@ pub fn test() {
                 render(&mut stdout, &default);
             }
             if i % width == 0 {
-                println!("\n");
+                println!("");
             }
         }
         thread::sleep_ms(200);

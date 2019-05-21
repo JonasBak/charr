@@ -9,7 +9,7 @@ fn render(stream: &mut StandardStream, pixel: &PixelBuffer) -> Result<(), Error>
     Ok(())
 }
 
-fn rotate_y(point: Vec3f, rad: f32) -> Vec3f {
+fn rotate_y(point: &Vec3f, rad: f32) -> Vec3f {
     Vec3(
         point.0 * rad.cos() + point.2 * rad.sin(),
         point.1,
@@ -61,13 +61,13 @@ fn rasterize(
 ) {
     let center = Vec2((width as f32) / 2.0, (height as f32) / 2.0);
     let p0_proj = Vec2((v0.0).0, (v0.0).1)
-        .scal(40.0 / (100.0 + (v0.0).2))
+        .scal(100.0 / (100.0 + (v0.0).2))
         .add(&center);
     let p1_proj = Vec2((v1.0).0, (v1.0).1)
-        .scal(40.0 / (100.0 + (v1.0).2))
+        .scal(100.0 / (100.0 + (v1.0).2))
         .add(&center);
     let p2_proj = Vec2((v2.0).0, (v2.0).1)
-        .scal(40.0 / (100.0 + (v2.0).2))
+        .scal(100.0 / (100.0 + (v2.0).2))
         .add(&center);
     let min_x = p0_proj
         .0
@@ -129,38 +129,63 @@ fn rasterize(
 
 pub fn test() {
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
-    let width = 50;
-    let height = 20;
+    let width = 100;
+    let height = 50;
 
     let mut buffer: Vec<Option<PixelBuffer>> = vec![];
     for _ in 0..width * height {
         buffer.push(None);
     }
 
-    let mut v0 = Vertex(Vec3(-20.0, -10.0, 0.0), Color::Blue);
-    let mut v1 = Vertex(Vec3(20.0, -10.0, 0.0), Color::Blue);
-    let mut v2 = Vertex(Vec3(-20.0, 10.0, 0.0), Color::Blue);
-    let mut v3 = Vertex(Vec3(-20.0, -10.0, 0.0), Color::Red);
-    let mut v4 = Vertex(Vec3(20.0, -10.0, 0.0), Color::Red);
-    let mut v5 = Vertex(Vec3(20.0, 10.0, 0.0), Color::Red);
+    let mut vecs = [
+        Vertex(Vec3(-20.0, -10.0, 20.0), Color::Blue),
+        Vertex(Vec3(20.0, -10.0, 20.0), Color::Blue),
+        Vertex(Vec3(-20.0, 10.0, 20.0), Color::Blue),
+        Vertex(Vec3(-20.0, 10.0, 20.0), Color::Red),
+        Vertex(Vec3(20.0, -10.0, 20.0), Color::Red),
+        Vertex(Vec3(20.0, 10.0, 20.0), Color::Red),
+        Vertex(Vec3(-20.0, -10.0, -20.0), Color::Blue),
+        Vertex(Vec3(20.0, -10.0, -20.0), Color::Blue),
+        Vertex(Vec3(20.0, 10.0, -20.0), Color::Blue),
+        Vertex(Vec3(-20.0, 10.0, -20.0), Color::Red),
+        Vertex(Vec3(-20.0, -10.0, -20.0), Color::Red),
+        Vertex(Vec3(20.0, 10.0, -20.0), Color::Red),
+        Vertex(Vec3(-20.0, -10.0, -20.0), Color::Blue),
+        Vertex(Vec3(-20.0, -10.0, 20.0), Color::Blue),
+        Vertex(Vec3(-20.0, 10.0, -20.0), Color::Blue),
+        Vertex(Vec3(-20.0, -10.0, 20.0), Color::Red),
+        Vertex(Vec3(-20.0, 10.0, -20.0), Color::Red),
+        Vertex(Vec3(-20.0, 10.0, 20.0), Color::Red),
+        Vertex(Vec3(20.0, -10.0, -20.0), Color::Blue),
+        Vertex(Vec3(20.0, -10.0, 20.0), Color::Blue),
+        Vertex(Vec3(20.0, 10.0, 20.0), Color::Blue),
+        Vertex(Vec3(20.0, -10.0, -20.0), Color::Red),
+        Vertex(Vec3(20.0, 10.0, -20.0), Color::Red),
+        Vertex(Vec3(20.0, 10.0, 20.0), Color::Red),
+    ];
 
     let default = PixelBuffer {
         color: Color::Black,
         depth: 0.0,
     };
 
-    for _ in 0..100 {
+    for _ in 0..200 {
         for i in 0..width * height {
             buffer[i] = None;
         }
-        v0 = Vertex(rotate_y(v0.0, 0.2), Color::Blue);
-        v1 = Vertex(rotate_y(v1.0, 0.2), Color::Blue);
-        v2 = Vertex(rotate_y(v2.0, 0.2), Color::Blue);
-        v3 = Vertex(rotate_y(v3.0, 0.1), Color::Red);
-        v4 = Vertex(rotate_y(v4.0, 0.1), Color::Red);
-        v5 = Vertex(rotate_y(v5.0, 0.1), Color::Red);
-        rasterize(&v0, &v1, &v2, &mut buffer[..], width as i32, height as i32);
-        rasterize(&v3, &v4, &v5, &mut buffer[..], width as i32, height as i32);
+        for i in 0..vecs.len() {
+            vecs[i] = Vertex(rotate_y(&vecs[i].0, 0.2), vecs[i].1);
+        }
+        for i in 0..vecs.len() / 3 {
+            rasterize(
+                &vecs[3 * i],
+                &vecs[3 * i + 1],
+                &vecs[3 * i + 2],
+                &mut buffer[..],
+                width as i32,
+                height as i32,
+            );
+        }
 
         for i in 0..width * height {
             if let Some(pixel) = &buffer[i as usize] {
@@ -173,6 +198,6 @@ pub fn test() {
             }
         }
         thread::sleep_ms(200);
-        println!("{}[2J", 27 as char);
+        //println!("{}[2J", 27 as char);
     }
 }

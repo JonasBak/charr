@@ -89,6 +89,7 @@ pub trait Zeroable {
     const ZERO: Self;
 }
 
+#[derive(Debug)]
 pub struct Vec3<T>(pub T, pub T, pub T)
 where
     T: ops::Add<Output = T>
@@ -132,6 +133,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct Vec2<T>(pub T, pub T)
 where
     T: ops::Add<Output = T>
@@ -141,6 +143,21 @@ where
         + Copy
         + Clone
         + Zeroable;
+
+impl<T> Vec2<T>
+where
+    T: ops::Add<Output = T>
+        + ops::Sub<Output = T>
+        + ops::Mul<Output = T>
+        + ops::Div<Output = T>
+        + Copy
+        + Clone
+        + Zeroable,
+{
+    pub fn cross(&self, other: &Self) -> T {
+        self.0 * other.1 - self.1 * other.0
+    }
+}
 
 impl<T> Vector<T> for Vec2<T>
 where
@@ -152,7 +169,7 @@ where
         + Clone
         + Zeroable,
 {
-    const DIMS: usize = 3;
+    const DIMS: usize = 2;
 
     fn zero() -> Self {
         Vec2(T::ZERO, T::ZERO)

@@ -29,6 +29,21 @@ fn inside(p0: &Vec2f, p1: &Vec2f, p2: &Vec2f, p: &Vec2f) -> bool {
     c1 * c2 <= 0.0
 }
 
+fn basis(v0: &Vec2f, v1: &Vec2f, p: &Vec2f) -> Option<(f32, f32)> {
+    if v0.cross(&v1) == 0.0 {
+        return None;
+    }
+    if v0.0 != 0.0 {
+        let b = (p.1 - v0.1 * p.0 / v0.0) / (v1.1 - v0.1 * v1.0 / v0.0);
+        let a = (p.0 - b * v1.0) / v0.0;
+        return Some((a, b));
+    } else {
+        let b = (p.1 - v1.1 * p.0 / v1.0) / (v0.1 - v1.1 * v0.0 / v1.0);
+        let a = (p.0 - b * v0.0) / v1.0;
+        return Some((a, b));
+    }
+}
+
 struct Vertex(Vec3f, Color);
 
 struct PixelBuffer {
@@ -91,7 +106,14 @@ fn rasterize(
 
             if inside(&p0_proj, &p1_proj, &p2_proj, &p) && inside(&p1_proj, &p2_proj, &p0_proj, &p)
             {
-                let depth = (v0.0).2; //TODO
+                let mut depth = -1000.0;
+                if let Some((a, b)) = basis(
+                    &p1_proj.sub(&p0_proj),
+                    &p2_proj.sub(&p0_proj),
+                    &p.sub(&p0_proj),
+                ) {
+                    depth = (v0.0).2 + v1.0.sub(&v0.0).scal(a).2 + v2.0.sub(&v0.0).scal(b).2;
+                }
                 let mut pb = PixelBuffer {
                     color: v0.1,
                     depth: depth,
@@ -117,12 +139,12 @@ pub fn test() {
         buffer.push(None);
     }
 
-    let mut v0 = Vertex(Vec3(-10.0, -10.0, 0.0), Color::Blue);
-    let mut v1 = Vertex(Vec3(10.0, -10.0, 0.0), Color::Blue);
-    let mut v2 = Vertex(Vec3(-10.0, 10.0, 0.0), Color::Blue);
-    let mut v3 = Vertex(Vec3(-10.0, -10.0, 0.0), Color::Red);
-    let mut v4 = Vertex(Vec3(10.0, -10.0, 0.0), Color::Red);
-    let mut v5 = Vertex(Vec3(10.0, 10.0, 0.0), Color::Red);
+    let mut v0 = Vertex(Vec3(-20.0, -10.0, 0.0), Color::Blue);
+    let mut v1 = Vertex(Vec3(20.0, -10.0, 0.0), Color::Blue);
+    let mut v2 = Vertex(Vec3(-20.0, 10.0, 0.0), Color::Blue);
+    let mut v3 = Vertex(Vec3(-20.0, -10.0, 0.0), Color::Red);
+    let mut v4 = Vertex(Vec3(20.0, -10.0, 0.0), Color::Red);
+    let mut v5 = Vertex(Vec3(20.0, 10.0, 0.0), Color::Red);
 
     let default = PixelBuffer {
         color: Color::Black,
@@ -136,9 +158,9 @@ pub fn test() {
         v0 = Vertex(rotate_y(v0.0, 0.2), Color::Blue);
         v1 = Vertex(rotate_y(v1.0, 0.2), Color::Blue);
         v2 = Vertex(rotate_y(v2.0, 0.2), Color::Blue);
-        //v3 = Vertex(rotate_y(v3.0, -0.1), Color::Red);
-        //v4 = Vertex(rotate_y(v4.0, -0.1), Color::Red);
-        //v5 = Vertex(rotate_y(v5.0, -0.1), Color::Red);
+        v3 = Vertex(rotate_y(v3.0, -0.1), Color::Red);
+        v4 = Vertex(rotate_y(v4.0, -0.1), Color::Red);
+        v5 = Vertex(rotate_y(v5.0, -0.1), Color::Red);
         rasterize(&v0, &v1, &v2, &mut buffer[..], width as i32, height as i32);
         rasterize(&v3, &v4, &v5, &mut buffer[..], width as i32, height as i32);
 

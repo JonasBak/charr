@@ -1,12 +1,16 @@
 use super::vector::{Vec2, Vec2f, Vec2i, Vec3, Vec3f, Vec3i, Vector};
-use std::io::{Error, Write};
+use std::io::{self, Read, Write};
 use std::thread;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+use termion::raw::IntoRawMode;
+use termion::{clear, color, cursor};
 
-fn render(stream: &mut StandardStream, pixel: &PixelBuffer) -> Result<(), Error> {
-    stream.set_color(ColorSpec::new().set_fg(Some(pixel.color)))?;
-    write!(stream, "#")?;
-    Ok(())
+fn render<W: Write>(out: &mut W, pixel: &PixelBuffer) {
+    match pixel.color {
+        Color::Red => write!(out, "{}#", color::Fg(color::Red)),
+        Color::Blue => write!(out, "{}#", color::Fg(color::Blue)),
+        Color::Black => write!(out, "{}#", color::Fg(color::Black)),
+    }
+    .unwrap();
 }
 
 fn rotate_y(point: &Vec3f, rad: f32) -> Vec3f {
@@ -42,6 +46,13 @@ fn basis(v0: &Vec2f, v1: &Vec2f, p: &Vec2f) -> Option<(f32, f32)> {
         let a = (p.0 - b * v0.0) / v1.0;
         return Some((a, b));
     }
+}
+
+#[derive(Debug, Copy, Clone)]
+enum Color {
+    Red,
+    Blue,
+    Black,
 }
 
 struct Vertex(Vec3f, Color);
@@ -128,9 +139,12 @@ fn rasterize(
 }
 
 pub fn test() {
-    let mut stdout = StandardStream::stdout(ColorChoice::Always);
-    let width = 100;
-    let height = 50;
+    let stdout = io::stdout();
+    let stdout = stdout.lock();
+    let mut stdout = stdout.into_raw_mode().unwrap();
+    let termsize = termion::terminal_size().ok();
+    let width = termsize.map(|(w, _)| w - 2).unwrap_or(80);
+    let height = termsize.map(|(_, h)| h - 2).unwrap_or(40);
 
     let mut buffer: Vec<Option<PixelBuffer>> = vec![];
     for _ in 0..width * height {
@@ -169,9 +183,10 @@ pub fn test() {
         depth: 0.0,
     };
 
+    print!("{}", clear::All);
     for _ in 0..200 {
         for i in 0..width * height {
-            buffer[i] = None;
+            buffer[i as usize] = None;
         }
         for i in 0..vecs.len() {
             vecs[i] = Vertex(rotate_y(&vecs[i].0, 0.2), vecs[i].1);
@@ -188,16 +203,15 @@ pub fn test() {
         }
 
         for i in 0..width * height {
+            if i % width == 0 {
+                write!(stdout, "{}", cursor::Goto(1, (i / width) as u16 + 1,));
+            }
             if let Some(pixel) = &buffer[i as usize] {
                 render(&mut stdout, pixel);
             } else {
                 render(&mut stdout, &default);
             }
-            if i % width == 0 {
-                println!("");
-            }
         }
-        thread::sleep_ms(200);
-        //println!("{}[2J", 27 as char);
+        thread::sleep_ms(100);
     }
 }

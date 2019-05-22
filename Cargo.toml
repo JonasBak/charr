@@ -5,4 +5,4 @@ authors = ["jonasbak <jonasxb@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-termcolor = "*"
+termion = "1"

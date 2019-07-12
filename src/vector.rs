@@ -89,7 +89,7 @@ pub trait Zeroable {
     const ZERO: Self;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vec3<T>(pub T, pub T, pub T)
 where
     T: ops::Add<Output = T>

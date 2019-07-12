@@ -18,9 +18,9 @@ pub fn write_to_file(
             _ => default_color,
         };
         file.write(&[
-            (color.r * 255.0) as u8,
-            (color.g * 255.0) as u8,
-            (color.b * 255.0) as u8,
+            (color.0 * 255.0) as u8,
+            (color.1 * 255.0) as u8,
+            (color.2 * 255.0) as u8,
         ])?;
     }
     Ok(())

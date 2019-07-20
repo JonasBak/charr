@@ -100,6 +100,21 @@ where
         + Clone
         + Zeroable;
 
+impl<T> Vec3<T>
+where
+    T: ops::Add<Output = T>
+        + ops::Sub<Output = T>
+        + ops::Mul<Output = T>
+        + ops::Div<Output = T>
+        + Copy
+        + Clone
+        + Zeroable,
+{
+    pub fn xy(&self) -> Vec2<T> {
+        Vec2(self.0, self.1)
+    }
+}
+
 impl<T> Vector<T> for Vec3<T>
 where
     T: ops::Add<Output = T>
